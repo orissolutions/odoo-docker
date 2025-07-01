@@ -6,7 +6,7 @@ USER root
 RUN apt-get update && apt-get install -y python3-dev build-essential python3-levenshtein libmagic1 libssl-dev libffi-dev zlib1g-dev cargo git vim
 
 RUN pip3 install wheel
-RUN pip3 install py3o.template py3o.formats html2text pyfcm barcode google_auth redis rstr jsonrpcclient PyJWT pandas openpyxl curlify pyzk
+RUN pip3 install py3o.template py3o.formats html2text pyfcm barcode google_auth redis rstr jsonrpcclient PyJWT pandas openpyxl pycryptodome curlify pyzk
 
 ADD entrypoint.sh /
 
