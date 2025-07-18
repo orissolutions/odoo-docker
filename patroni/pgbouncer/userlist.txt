@@ -1,0 +1,2 @@
+"postgres" "d0a4f1a0c9e212cdasf9f3f2c3a6c8f2c2"
+"odoo" "d0a4f1a0c9e212cdasf9f3f2c3a6c8f2c2"

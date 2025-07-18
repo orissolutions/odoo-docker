@@ -1,0 +1,89 @@
+scope: postgres-cluster
+name: patroni-2
+
+restapi:
+  listen: 0.0.0.0:8008
+  connect_address: 172.16.1.20:8008
+
+etcd3:
+  hosts:
+    - 172.16.1.20:2379
+    - 172.16.1.21:2379
+    - 172.16.1.20:2479
+  protocol_version: 3
+
+bootstrap:
+  dcs:
+    ttl: 30
+    loop_wait: 10
+    retry_timeout: 10
+    maximum_lag_on_failover: 1048576
+    postgresql:
+      use_pg_rewind: true
+      use_slots: true
+      parameters:
+        wal_level: logical
+        hot_standby: "on"
+        max_connections: 5000
+        max_wal_senders: 10
+        max_replication_slots: 10
+        wal_keep_segments: 8
+        shared_buffers: "4GB"
+        effective_cache_size: "12GB"
+        maintenance_work_mem: "1GB"
+        checkpoint_completion_target: 0.9
+        wal_buffers: "16MB"
+        default_statistics_target: 100
+        random_page_cost: 1.1
+        effective_io_concurrency: 200
+        work_mem: "209kB"
+        huge_pages: "off"
+        min_wal_size: "2GB"
+        max_wal_size: "8GB"
+        max_worker_processes: 6
+        max_parallel_workers_per_gather: 3
+        max_parallel_workers: 6
+        max_parallel_maintenance_workers: 3
+  initdb:
+    - encoding: UTF8
+    - data-checksums
+  pg_hba:
+    - host all all 0.0.0.0/0 md5
+    - local all all trust
+    - host replication replicator 0.0.0.0/0 md5
+
+postgresql:
+  listen: 0.0.0.0:7432
+  connect_address: 172.16.1.21:7432
+  data_dir: /var/lib/postgresql/data
+  bin_dir: /usr/lib/postgresql/16/bin
+  pgpass: /tmp/pgpass
+  authentication:
+    superuser:
+      username: postgres
+      password: d0a4f1a0c9e212cdasf9f3f2c3a6c8f2c2
+    replication:
+      username: replicator
+      password: d0a4f12daf21f9f3f2c21daf12
+  parameters:
+    unix_socket_directories: '/tmp'
+    max_connections: 9999
+    shared_buffers: "6GB"
+    effective_cache_size: "18GB"
+    maintenance_work_mem: "1536MB"
+    checkpoint_completion_target: 0.9
+    wal_buffers: "16MB"
+    default_statistics_target: 100
+    random_page_cost: 1.1
+    effective_io_concurrency: 200
+    work_mem: "628kB"
+    huge_pages: "off"
+    min_wal_size: "2GB"
+    max_wal_size: "8GB"
+    max_worker_processes: 12
+    max_parallel_workers_per_gather: 4
+    max_parallel_workers: 12
+    max_parallel_maintenance_workers: 4
+    max_standby_streaming_delay: "300s"
+    hot_standby_feedback: "on"
+    recovery_min_apply_delay: "5min"

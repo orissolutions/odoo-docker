@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  etcd:
+    image: bitnami/etcd:latest
+    container_name: etcd
+    environment:
+      - ETCD_NAME=etcd1
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://172.16.1.20:2379
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://172.16.1.20:2380
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_INITIAL_CLUSTER=etcd1=http://172.16.1.20:2380,etcd2=http://172.16.1.21:2380,etcd_witness=http://172.16.1.20:2381
+      - ETCD_INITIAL_CLUSTER_STATE=new
+      - ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    networks:
+      - npm-network
+
+  etcd_witness:
+    image: bitnami/etcd:latest
+    container_name: etcd_witness
+    environment:
+      - ETCD_NAME=etcd_witness
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://172.16.1.20:2479
+      - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+      - ETCD_INITIAL_ADVERTISE_PEER_URLS=http://172.16.1.20:2381
+      - ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+      - ETCD_INITIAL_CLUSTER=etcd1=http://172.16.1.20:2380,etcd2=http://172.16.1.21:2380,etcd_witness=http://172.16.1.20:2381
+      - ETCD_INITIAL_CLUSTER_STATE=new
+      - ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster
+    ports:
+      - "2479:2379"
+      - "2381:2380"
+    networks:
+      - npm-network
+
+  patroni:
+    image: patroni:latest
+    container_name: patroni
+    shm_size: '4096m'
+    environment:
+      - PATRONI_NAME=patroni-1
+      - PATRONI_SCOPE=postgres-cluster
+      - ETCD_HOST=172.16.1.20:2379,172.16.1.21:2379,172.16.1.20:2479
+      - ETCD_PROTOCOL_VERSION=3
+      - PATRONI_RESTAPI_LISTEN=0.0.0.0:8008
+      - PATRONI_RESTAPI_CONNECT_ADDRESS=172.16.1.20:8008
+      - PATRONI_POSTGRESQL_LISTEN=0.0.0.0:7432
+      - PATRONI_POSTGRESQL_CONNECT_ADDRESS=172.16.1.20:7432
+      - PATRONI_SUPERUSER_PASSWORD=d0a4f1a0c9e212cdasf9f3f2c3a6c8f2c2
+      - PATRONI_REPLICATION_PASSWORD=d0a4f12daf21f9f3f2c21daf12
+      - PATRONI_ADMIN_PASSWORD=d0a4f1a24sadsa7c21dsafd1daf12
+      - LOG_LEVEL=DEBUG
+    ports:
+      - "7432:7432"
+      - "8008:8008"
+    depends_on:
+      - etcd
+      - etcd_witness
+    volumes:
+      - patroni_data:/var/lib/postgresql/data
+      - /opt/patroni.yml:/config/patroni.yml
+      - /opt/ssl:/opt/ssl
+    networks:
+      - npm-network
+    ulimits: 
+      nproc: 999999 
+      nofile:
+        soft: 999999
+        hard: 999999
+
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  pgbouncer_pool:
+    image: bitnami/pgbouncer:latest
+    restart: always
+    user: root
+    volumes:
+      - /opt/pgbouncer:/bitnami/pgbouncer/conf
+    environment: 
+      - POSTGRESQL_HOST=patroni
+      - POSTGRESQL_PORT=7432
+      - PGBOUNCER_AUTH_USER=odoo
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=d0a4f1a0c9e212cdasf9f3f2c3a6c8f2c2
+    ports:
+     - "6432:6432"
+    networks:
+      - npm-network
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  npm-network:
+    external: true
+
+volumes:
+  patroni_data:
+
