@@ -1,5 +1,4 @@
-FROM odoo:18.0
-# Of course, you can change the 12.0 by the version you want
+FROM ghcr.io/orissolutions/odoo:18.0
 
 USER root
 
@@ -8,9 +7,9 @@ RUN apt-get update && apt-get install -y python3-dev build-essential python3-lev
 RUN pip3 install --break-system-packages wheel
 RUN pip3 install --break-system-packages --ignore-installed py3o.template py3o.formats html2text pyfcm barcode google_auth redis rstr jsonrpcclient PyJWT pandas openpyxl pycryptodome curlify pyzk
 
-ADD entrypoint.sh /
-
-RUN chown odoo /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY odoo-upgrade /usr/local/bin/odoo-upgrade
+COPY odoo-shell   /usr/local/bin/odoo-shell
+RUN chmod +x /usr/local/bin/odoo-*
 
 USER odoo
+

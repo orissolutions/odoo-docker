@@ -1,0 +1,11 @@
+#!/bin/bash
+# tất cả tham số extra sẽ được truyền tiếp
+exec odoo shell \
+  -c /etc/odoo/odoo.conf \
+  -d "${DB_NAME:-odoo}" \
+  --db_host "${HOST:-db}" \
+  --db_port "${PORT:-5432}" \
+  --db_user "${USER:-odoo}" \
+  --db_password "${PASSWORD:-odoo}" \
+  --addons-path "${ADDONS_PATH}" \
+  -p 8065 "$@"

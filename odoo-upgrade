@@ -1,0 +1,13 @@
+#!/bin/bash
+# modules list truyền vào dưới dạng module1,module2,...
+exec odoo \
+  -c /etc/odoo/odoo.conf \
+  -d "${DB_NAME:-odoo}" \
+  --db_host "${HOST:-db}" \
+  --db_port "${PORT:-5432}" \
+  --db_user "${USER:-odoo}" \
+  --db_password "${PASSWORD:-odoo}" \
+  --addons-path "${ADDONS_PATH}" \
+  --load-language=en_US \
+  --stop-after-init \
+  "$@"
